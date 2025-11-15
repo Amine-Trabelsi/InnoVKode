@@ -104,12 +104,6 @@ func studentMenu() *MenuNode {
 			actionNode("student.education.feedback", l("💬 Отзывы преподавателям", "💬 Teacher feedback"), domain.ActionTeacherFeedback),
 			actionNode("student.education.electives", l("➕ Запись на элективы", "➕ Elective registration"), domain.ActionElectiveRegistration),
 		}),
-		menuNode("student.projects", l("🚀 Проекты", "🚀 Projects"), nil, "", []*MenuNode{
-			actionNode("student.projects.submit", l("💡 Подать проект", "💡 Submit project"), domain.ActionSubmitProject),
-			actionNode("student.projects.team", l("👥 Команда", "👥 Build team"), domain.ActionBuildTeam),
-			actionNode("student.projects.browse", l("🔍 Найти проект", "🔍 Browse projects"), domain.ActionBrowseProjects),
-			actionNode("student.projects.mine", l("📋 Мои проекты", "📋 My projects"), domain.ActionMyProjects),
-		}),
 		menuNode("student.career", l("💼 Карьера", "💼 Career"), nil, "", []*MenuNode{
 			actionNode("student.career.consult", l("📞 Консультация", "📞 Career consultation"), domain.ActionCareerConsultation),
 			actionNode("student.career.jobs", l("💼 Вакансии", "💼 Job board"), domain.ActionBrowseJobs),
@@ -134,22 +128,10 @@ func studentMenu() *MenuNode {
 			actionNode("student.events.register", l("✅ Регистрация", "✅ Register"), domain.ActionEventsRegister),
 			actionNode("student.events.my", l("📋 Мои события", "📋 My events"), domain.ActionEventsMine),
 		}),
-		menuNode("student.library", l("📚 Библиотека", "📚 Library"), nil, "", []*MenuNode{
-			actionNode("student.library.search", l("🔍 Поиск книг", "🔍 Search books"), domain.ActionLibrarySearch),
-			actionNode("student.library.reserve", l("📖 Резерв", "📖 Reserve book"), domain.ActionLibraryReserve),
-			actionNode("student.library.my", l("📋 Мои книги", "📋 My library"), domain.ActionLibraryMy),
-		}),
 		menuNode("student.visa", l("🛂 Виза", "🛂 Visa services"), nil, "", []*MenuNode{
 			actionNode("student.visa.status", l("📋 Статус", "📋 Status"), domain.ActionVisaStatus),
 			actionNode("student.visa.renewal", l("🔄 Продление", "🔄 Renewal"), domain.ActionVisaRenewal),
 			actionNode("student.visa.appointment", l("📅 Запись", "📅 Appointment"), domain.ActionVisaAppointment),
-		}),
-		menuNode("student.ai", l("🤖 Учебный ассистент", "🤖 AI Assistant"), nil, "", []*MenuNode{
-			actionNode("student.ai.query", l("🔎 Вопрос RAG", "🔎 Knowledge query"), domain.ActionAIQuery),
-			actionNode("student.ai.summary", l("📝 Конспект", "📝 Summarize text"), domain.ActionAISummary),
-			actionNode("student.ai.quiz", l("❓ Генерация квиза", "❓ Generate quiz"), domain.ActionAIQuiz),
-			actionNode("student.ai.transcribe", l("🎧 Транскрибация", "🎧 Transcription"), domain.ActionAITranscription),
-			actionNode("student.ai.advisor", l("🧑‍🏫 Эдвайзер", "🧑‍🏫 Advisor chat"), domain.ActionAdvisorChat),
 		}),
 		menuNode("student.settings", l("⚙️ Настройки", "⚙️ Settings"), nil, "", []*MenuNode{
 			actionNode("student.settings.profile", l("👤 Профиль", "👤 Profile"), domain.ActionViewProfile),
@@ -189,13 +171,6 @@ func employeeMenu() *MenuNode {
 			actionNode("employee.visa.status", l("📋 Статус", "📋 Status"), domain.ActionVisaStatus),
 			actionNode("employee.visa.renewal", l("🔄 Продление", "🔄 Renewal"), domain.ActionVisaRenewal),
 			actionNode("employee.visa.appointment", l("📅 Запись", "📅 Appointment"), domain.ActionVisaAppointment),
-		}),
-		menuNode("employee.ai", l("🤖 Ассистент", "🤖 AI assistant"), nil, "", []*MenuNode{
-			actionNode("employee.ai.query", l("🔎 Вопрос", "🔎 Knowledge query"), domain.ActionAIQuery),
-			actionNode("employee.ai.summary", l("📝 Конспект", "📝 Summary"), domain.ActionAISummary),
-			actionNode("employee.ai.quiz", l("❓ Квиз", "❓ Quiz"), domain.ActionAIQuiz),
-			actionNode("employee.ai.transcribe", l("🎧 Транскрибация", "🎧 Transcription"), domain.ActionAITranscription),
-			actionNode("employee.ai.advisor", l("🧑‍🏫 Советник", "🧑‍🏫 Advisor"), domain.ActionAdvisorChat),
 		}),
 		menuNode("employee.settings", l("⚙️ Настройки", "⚙️ Settings"), nil, "", []*MenuNode{
 			actionNode("employee.settings.profile", l("👤 Профиль", "👤 Profile"), domain.ActionViewProfile),
