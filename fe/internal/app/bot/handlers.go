@@ -119,17 +119,9 @@ func (s *Service) handleAction(ctx context.Context, sess *domain.Session, action
 	case domain.ActionLibraryMy:
 		return s.handleLibraryLoans(ctx, sess)
 	case domain.ActionVisaStatus:
-		return domain.OutgoingMessage{
-			Text: "Visa dashboard shows expiry countdown and document checklist. Contact International Office 30 days before expiry.",
-		}, nil
-	case domain.ActionVisaRenewal:
-		return domain.OutgoingMessage{
-			Text: "Renewal steps:\n1. Collect passport, migration card, photos.\n2. Upload scans via portal.\n3. Book biometrics slot with /support.",
-		}, nil
-	case domain.ActionVisaAppointment:
-		return domain.OutgoingMessage{
-			Text: "To book visa appointment specify service type (renewal/registration) and preferred slot via /support.",
-		}, nil
+		return s.handleVisaStatus(ctx, sess)
+	case domain.ActionVisaMakeApplication:
+		return s.handleVisaMakeApplication(ctx, sess)
 	case domain.ActionViewProfile:
 		return s.handleProfile(sess), nil
 	case domain.ActionToggleNotifications:
@@ -540,6 +532,49 @@ func (s *Service) handleProfile(sess *domain.Session) domain.OutgoingMessage {
 		Text:      text,
 		ParseMode: domain.ParseModeMarkdown,
 	}
+}
+
+func (s *Service) handleVisaStatus(ctx context.Context, sess *domain.Session) (domain.OutgoingMessage, error) {
+	if sess.Profile == nil || sess.Profile.ID == 0 {
+		return messageError(sess.Language, "Нужна авторизация.", "Please login first."), nil
+	}
+	apps, err := s.backend.GetVisaApplications(ctx, sess.Profile.ID)
+	if err != nil {
+		return domain.OutgoingMessage{}, err
+	}
+	if len(apps) == 0 {
+		return domain.OutgoingMessage{Text: s.t(sess.Language, "У вас нет заявок на визу.", "You have no visa applications.")}, nil
+	}
+	kb := &domain.Keyboard{}
+	for _, app := range apps {
+		label := fmt.Sprintf("%s (%s)", app["application_type"], app["status"])
+		btn := domain.KeyboardButton{
+			Label:   label,
+			Style:   domain.ButtonStylePrimary,
+			Kind:    domain.ButtonKindCallback,
+			Payload: "visa_app:" + fmt.Sprintf("%v", app["id"]),
+		}
+		kb.Rows = append(kb.Rows, []domain.KeyboardButton{btn})
+	}
+	return domain.OutgoingMessage{
+		Text:     s.t(sess.Language, "Выберите заявку:", "Select an application:"),
+		Keyboard: kb,
+	}, nil
+}
+
+func (s *Service) handleVisaMakeApplication(ctx context.Context, sess *domain.Session) (domain.OutgoingMessage, error) {
+	kb := &domain.Keyboard{
+		Rows: [][]domain.KeyboardButton{
+			{
+				{Label: s.t(sess.Language, "Продление визы", "Visa renewal"), Kind: domain.ButtonKindCallback, Payload: "visa_type:visa_renewal", Style: domain.ButtonStylePrimary},
+				{Label: s.t(sess.Language, "Продление регистрации", "Registration renewal"), Kind: domain.ButtonKindCallback, Payload: "visa_type:registration_renewal", Style: domain.ButtonStylePrimary},
+			},
+		},
+	}
+	return domain.OutgoingMessage{
+		Text:     s.t(sess.Language, "Выберите тип заявки:", "Choose application type:"),
+		Keyboard: kb,
+	}, nil
 }
 
 func emptyFallback(val, fallback string) string {

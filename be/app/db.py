@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://app_user:app_password@db:5432/app_db",
+    "sqlite+aiosqlite:///app.db",
 )
 
 logger = logging.getLogger("server-be")

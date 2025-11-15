@@ -140,6 +140,7 @@ func (s *Service) handleLanguageSelection(ctx context.Context, sess *domain.Sess
 		sess.Stage = domain.StageMainMenu
 		sess.PendingAction = nil
 		sess.PendingEventID = 0
+		sess.PendingVisaApplicationID = 0
 		s.saveSession(sess)
 		greeting := s.t(sess.Language, "🌐 Язык интерфейса изменён!", "🌐 Interface language changed!")
 		if err := s.reply(ctx, sess, greeting); err != nil {
@@ -247,6 +248,9 @@ func (s *Service) handleOTPSubmission(ctx context.Context, sess *domain.Session,
 }
 
 func (s *Service) handleMainMenu(ctx context.Context, sess *domain.Session, upd domain.Update) error {
+	if sess.PendingVisaApplicationID > 0 && upd.Type == domain.UpdateTypeMessage && strings.TrimSpace(upd.Text) != "" {
+		return s.handleVisaDocumentUpload(ctx, sess, strings.TrimSpace(upd.Text))
+	}
 	if sess.PendingAction != nil && upd.Type == domain.UpdateTypeMessage && strings.TrimSpace(upd.Text) != "" {
 		return s.handleFormInput(ctx, sess, strings.TrimSpace(upd.Text))
 	}
@@ -271,6 +275,18 @@ func (s *Service) handleMainMenu(ctx context.Context, sess *domain.Session, upd 
 		case strings.HasPrefix(upd.Payload, "schedule:"):
 			param := strings.TrimPrefix(upd.Payload, "schedule:")
 			return s.handleScheduleFilter(ctx, sess, param)
+		case strings.HasPrefix(upd.Payload, "visa_app:"):
+			appIDStr := strings.TrimPrefix(upd.Payload, "visa_app:")
+			return s.handleVisaAppSelect(ctx, sess, appIDStr)
+		case strings.HasPrefix(upd.Payload, "visa_withdraw:"):
+			appIDStr := strings.TrimPrefix(upd.Payload, "visa_withdraw:")
+			return s.handleVisaWithdraw(ctx, sess, appIDStr)
+		case strings.HasPrefix(upd.Payload, "visa_docs:"):
+			appIDStr := strings.TrimPrefix(upd.Payload, "visa_docs:")
+			return s.handleVisaShowDocuments(ctx, sess, appIDStr)
+		case strings.HasPrefix(upd.Payload, "visa_type:"):
+			appType := strings.TrimPrefix(upd.Payload, "visa_type:")
+			return s.handleVisaTypeSelect(ctx, sess, appType)
 		}
 	}
 
@@ -299,6 +315,7 @@ func (s *Service) executeAction(ctx context.Context, sess *domain.Session, actio
 		sess.Stage = domain.StageSelectLanguage
 		sess.PendingAction = nil
 		sess.PendingEventID = 0
+		sess.PendingVisaApplicationID = 0
 		s.saveSession(sess)
 		return s.sendLanguagePrompt(ctx, sess, false)
 	}
@@ -445,6 +462,7 @@ func (s *Service) resetSession(sess *domain.Session) {
 	sess.PendingAction = nil
 	sess.PendingOTP = nil
 	sess.PendingEventID = 0
+	sess.PendingVisaApplicationID = 0
 	sess.Profile = nil
 	sess.Email = ""
 	sess.Role = domain.RoleApplicant
@@ -561,6 +579,86 @@ func (s *Service) handleScheduleFilter(ctx context.Context, sess *domain.Session
 		lines = append(lines, fmt.Sprintf("• %s — %s (%s)", item.StartTime.Format("Mon 02 Jan 15:04"), item.Title, item.Location))
 	}
 	return s.reply(ctx, sess, strings.Join(lines, "\n"))
+}
+
+func (s *Service) handleVisaAppSelect(ctx context.Context, sess *domain.Session, appIDStr string) error {
+	kb := &domain.Keyboard{
+		Rows: [][]domain.KeyboardButton{
+			{
+				{Label: s.t(sess.Language, "Отозвать", "Withdraw"), Kind: domain.ButtonKindCallback, Payload: "visa_withdraw:" + appIDStr, Style: domain.ButtonStyleDanger},
+				{Label: s.t(sess.Language, "Показать документы", "Show documents"), Kind: domain.ButtonKindCallback, Payload: "visa_docs:" + appIDStr, Style: domain.ButtonStylePrimary},
+			},
+		},
+	}
+	msg := domain.OutgoingMessage{
+		Text:     s.t(sess.Language, "Выберите действие:", "Choose action:"),
+		Keyboard: kb,
+	}
+	return s.replyMessage(ctx, sess, msg)
+}
+
+func (s *Service) handleVisaWithdraw(ctx context.Context, sess *domain.Session, appIDStr string) error {
+	appID, err := strconv.ParseInt(appIDStr, 10, 64)
+	if err != nil {
+		return s.reply(ctx, sess, "Invalid application ID.")
+	}
+	if sess.Profile == nil || sess.Profile.ID == 0 {
+		return s.reply(ctx, sess, s.t(sess.Language, "Нужна авторизация.", "Please login first."))
+	}
+	err = s.backend.WithdrawVisaApplication(ctx, appID)
+	if err != nil {
+		return s.reply(ctx, sess, s.t(sess.Language, "Ошибка при отзыве заявки.", "Error withdrawing application."))
+	}
+	return s.reply(ctx, sess, s.t(sess.Language, "Заявка отозвана.", "Application withdrawn."))
+}
+
+func (s *Service) handleVisaShowDocuments(ctx context.Context, sess *domain.Session, appIDStr string) error {
+	appID, err := strconv.ParseInt(appIDStr, 10, 64)
+	if err != nil {
+		return s.reply(ctx, sess, "Invalid application ID.")
+	}
+	if sess.Profile == nil || sess.Profile.ID == 0 {
+		return s.reply(ctx, sess, s.t(sess.Language, "Нужна авторизация.", "Please login first."))
+	}
+	docs, err := s.backend.GetVisaDocuments(ctx, appID)
+	if err != nil {
+		return s.reply(ctx, sess, s.t(sess.Language, "Ошибка загрузки документов.", "Error loading documents."))
+	}
+	if len(docs) == 0 {
+		return s.reply(ctx, sess, s.t(sess.Language, "Нет связанных документов.", "No relevant docs."))
+	}
+	lines := []string{s.t(sess.Language, "Документы:", "Documents:")}
+	for _, doc := range docs {
+		lines = append(lines, fmt.Sprintf("• %s", doc["file_name"]))
+	}
+	return s.reply(ctx, sess, strings.Join(lines, "\n"))
+}
+
+func (s *Service) handleVisaTypeSelect(ctx context.Context, sess *domain.Session, appType string) error {
+	if sess.Profile == nil || sess.Profile.ID == 0 {
+		return s.reply(ctx, sess, s.t(sess.Language, "Нужна авторизация.", "Please login first."))
+	}
+	appID, err := s.backend.CreateVisaApplication(ctx, sess.Profile.ID, appType)
+	if err != nil {
+		return s.reply(ctx, sess, s.t(sess.Language, "Ошибка создания заявки.", "Error creating application."))
+	}
+	sess.PendingVisaApplicationID = appID
+	s.saveSession(sess)
+	return s.reply(ctx, sess, s.t(sess.Language, "Заявка создана. Пожалуйста, загрузите документ (отправьте файл или ссылку).", "Application created. Please upload the document (send file or link)."))
+}
+
+func (s *Service) handleVisaDocumentUpload(ctx context.Context, sess *domain.Session, fileURL string) error {
+	if sess.PendingVisaApplicationID == 0 {
+		return nil // shouldn't happen
+	}
+	// Assume fileURL is the file name or URL
+	_, err := s.backend.UploadVisaDocument(ctx, sess.PendingVisaApplicationID, "uploaded_document", fileURL)
+	if err != nil {
+		return s.reply(ctx, sess, s.t(sess.Language, "Ошибка загрузки документа.", "Error uploading document."))
+	}
+	sess.PendingVisaApplicationID = 0
+	s.saveSession(sess)
+	return s.reply(ctx, sess, s.t(sess.Language, "Документ загружен успешно.", "Document uploaded successfully."))
 }
 
 func (s *Service) t(lang domain.Language, ru, en string) string {

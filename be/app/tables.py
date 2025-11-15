@@ -510,3 +510,24 @@ ai_advisor_sessions = Table(
     Column("response", Text),
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
 )
+
+visa_applications = Table(
+    "visa_applications",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("user_id", ForeignKey("users.id"), nullable=False),
+    Column("application_type", String(80), nullable=False),  # visa_renewal, registration_renewal
+    Column("status", String(40), default="pending"),  # pending, withdrawn, approved, rejected
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now(), onupdate=func.now()),
+)
+
+visa_documents = Table(
+    "visa_documents",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("application_id", ForeignKey("visa_applications.id"), nullable=False),
+    Column("file_name", String(255), nullable=False),
+    Column("file_url", String(255), nullable=False),
+    Column("uploaded_at", DateTime(timezone=True), server_default=func.now()),
+)

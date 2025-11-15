@@ -130,8 +130,7 @@ func studentMenu() *MenuNode {
 		}),
 		menuNode("student.visa", l("🛂 Виза", "🛂 Visa services"), nil, "", []*MenuNode{
 			actionNode("student.visa.status", l("📋 Статус", "📋 Status"), domain.ActionVisaStatus),
-			actionNode("student.visa.renewal", l("🔄 Продление", "🔄 Renewal"), domain.ActionVisaRenewal),
-			actionNode("student.visa.appointment", l("📅 Запись", "📅 Appointment"), domain.ActionVisaAppointment),
+			actionNode("student.visa.make_application", l("📝 Сделать заявку", "📝 Make application"), domain.ActionVisaMakeApplication),
 		}),
 		menuNode("student.settings", l("⚙️ Настройки", "⚙️ Settings"), nil, "", []*MenuNode{
 			actionNode("student.settings.profile", l("👤 Профиль", "👤 Profile"), domain.ActionViewProfile),
@@ -169,8 +168,7 @@ func employeeMenu() *MenuNode {
 		}),
 		menuNode("employee.visa", l("🛂 Виза", "🛂 Visa services"), nil, "", []*MenuNode{
 			actionNode("employee.visa.status", l("📋 Статус", "📋 Status"), domain.ActionVisaStatus),
-			actionNode("employee.visa.renewal", l("🔄 Продление", "🔄 Renewal"), domain.ActionVisaRenewal),
-			actionNode("employee.visa.appointment", l("📅 Запись", "📅 Appointment"), domain.ActionVisaAppointment),
+			actionNode("employee.visa.make_application", l("📝 Сделать заявку", "📝 Make application"), domain.ActionVisaMakeApplication),
 		}),
 		menuNode("employee.settings", l("⚙️ Настройки", "⚙️ Settings"), nil, "", []*MenuNode{
 			actionNode("employee.settings.profile", l("👤 Профиль", "👤 Profile"), domain.ActionViewProfile),

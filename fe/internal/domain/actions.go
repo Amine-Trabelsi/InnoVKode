@@ -49,8 +49,7 @@ const (
 	ActionLibraryMy             ActionID = "library_my"
 
 	ActionVisaStatus            ActionID = "visa_status"
-	ActionVisaRenewal           ActionID = "visa_renewal"
-	ActionVisaAppointment       ActionID = "visa_appointment"
+	ActionVisaMakeApplication   ActionID = "visa_make_application"
 
 	ActionViewProfile           ActionID = "view_profile"
 	ActionToggleNotifications   ActionID = "toggle_notifications"

@@ -16,6 +16,7 @@ from . import (
     support,
     teaching,
     users,
+    visa,
     exams,
 )
 
@@ -36,5 +37,6 @@ ROUTERS = [
     dorms.router,
     library.router,
     support.router,
+    visa.router,
 ]
 

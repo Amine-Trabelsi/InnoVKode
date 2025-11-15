@@ -597,6 +597,58 @@ func (b *Backend) RequestCertificate(ctx context.Context, employeeID int64, cert
 
 // endregion
 
+// region Visa
+
+func (b *Backend) GetVisaApplications(ctx context.Context, userID int64) ([]map[string]any, error) {
+	var result []map[string]any
+	if err := b.get(ctx, fmt.Sprintf("/api/v1/visa/applications/%d", userID), nil, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (b *Backend) CreateVisaApplication(ctx context.Context, userID int64, applicationType string) (int64, error) {
+	payload := map[string]any{
+		"user_id":          userID,
+		"application_type": applicationType,
+	}
+	var resp struct {
+		ApplicationID int64 `json:"application_id"`
+	}
+	if err := b.post(ctx, "/api/v1/visa/applications", payload, &resp); err != nil {
+		return 0, err
+	}
+	return resp.ApplicationID, nil
+}
+
+func (b *Backend) WithdrawVisaApplication(ctx context.Context, applicationID int64) error {
+	return b.post(ctx, fmt.Sprintf("/api/v1/visa/applications/%d/withdraw", applicationID), nil, nil)
+}
+
+func (b *Backend) GetVisaDocuments(ctx context.Context, applicationID int64) ([]map[string]any, error) {
+	var result []map[string]any
+	if err := b.get(ctx, fmt.Sprintf("/api/v1/visa/applications/%d/documents", applicationID), nil, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (b *Backend) UploadVisaDocument(ctx context.Context, applicationID int64, fileName, fileURL string) (int64, error) {
+	payload := map[string]any{
+		"file_name": fileName,
+		"file_url":  fileURL,
+	}
+	var resp struct {
+		DocumentID int64 `json:"document_id"`
+	}
+	if err := b.post(ctx, fmt.Sprintf("/api/v1/visa/applications/%d/documents", applicationID), payload, &resp); err != nil {
+		return 0, err
+	}
+	return resp.DocumentID, nil
+}
+
+// endregion
+
 // region Notifications
 
 func (b *Backend) SendNotification(ctx context.Context, subject, body string, recipientID *int64) (int64, error) {

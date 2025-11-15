@@ -55,5 +55,11 @@ type Backend interface {
 	GetCertificates(ctx context.Context, employeeID int64) ([]domain.HRLetter, error)
 	RequestCertificate(ctx context.Context, employeeID int64, certificateType string) (int64, error)
 
+	GetVisaApplications(ctx context.Context, userID int64) ([]map[string]any, error)
+	CreateVisaApplication(ctx context.Context, userID int64, applicationType string) (int64, error)
+	WithdrawVisaApplication(ctx context.Context, applicationID int64) error
+	GetVisaDocuments(ctx context.Context, applicationID int64) ([]map[string]any, error)
+	UploadVisaDocument(ctx context.Context, applicationID int64, fileName, fileURL string) (int64, error)
+
 	SendNotification(ctx context.Context, subject, body string, recipientID *int64) (int64, error)
 }
