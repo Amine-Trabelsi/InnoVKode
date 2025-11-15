@@ -1,0 +1,56 @@
+services:
+
+  db:
+    container_name: db
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=app_db
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=app_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d app_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  be:
+    container_name: be
+    build:
+      context: ./be
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://app_user:app_password@db:5432/app_db
+      - RESET_DB_ON_STARTUP=false
+      - ENVIRONMENT=docker
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./be:/app
+
+  fe:
+    container_name: fe
+    build:
+      context: ./fe
+    depends_on:
+      be:
+        condition: service_started
+    environment:
+      - MAX_BOT_TOKEN=f9LHodD0cOKTw3horWOF1Q-0j299h-2Im_uArBtceLVFl5oS35CFwQkNosNV1CcnbnTCJF_KgUPd8tvUil9t
+      - BACKEND_BASE_URL=http://be:8000
+      - HTTP_TIMEOUT=10s
+      - ENVIRONMENT=docker
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    volumes:
+      - ./fe:/app
+
+volumes:
+  postgres_data:
