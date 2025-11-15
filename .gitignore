@@ -1,0 +1,112 @@
+# ============================
+# OS / Editor junk
+# ============================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+
+# VS Code
+.vscode/
+.history/
+
+# JetBrains / PyCharm
+.idea/
+
+# ============================
+# Python (server-be, tools)
+# ============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+.venv/
+venv/
+ENV/
+
+# Packaging / build
+build/
+dist/
+pip-wheel-metadata/
+*.egg-info/
+
+# Type-checker / test caches
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local DB files (if any)
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================
+# Go (bot-be)
+# ============================
+# Go build artifacts
+bin/
+*.exe
+*.test
+*.out
+
+# Modules vendor dir (if you ever run `go mod vendor`)
+vendor/
+
+# ============================
+# Node (if you add a frontend later)
+# ============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================
+# Docker / Compose
+# ============================
+.docker/
+docker-data/
+docker-volumes/
+*.tar
+
+# ============================
+# Environment / secrets
+# ============================
+.env
+.env.*
+*.env
+secrets.yml
+secrets.yaml
+secrets.json
+*.pem
+*.key
+
+# ============================
+# Project-specific
+# ============================
+
+# Output from get_structure.py
+structure.txt
+get_structure_output/
+
+# Local scratch / backups
+*.local
+*.bak
+
+# ============================
+# Logs
+# ============================
+logs/
+*.log
+*.err
+*.out
+
+# ============================
+# Temp directories
+# ============================
+tmp/
+temp/
