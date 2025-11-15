@@ -107,7 +107,7 @@ func (s *Service) handleGlobalCommands(ctx context.Context, sess *domain.Session
 		helpText := s.t(sess.Language,
 			"🆘 **Помощь**\n\n📋 **Команды:**\n• /start - Перезапустить бота\n• /language - Изменить язык\n• /help - Показать эту справку\n• /cancel - Отменить текущее действие\n\n❓ **Часто задаваемые вопросы:**\n• Как войти? Используйте /start и выберите 'Войти'.\n• Забыли пароль? Свяжитесь с поддержкой через меню.\n• Проблемы с ботом? Опишите в '🐞 Сообщить об ошибке'.\n\n💬 Для дополнительной помощи используйте меню 'ℹ️ Поддержка'.",
 			"🆘 **Help**\n\n📋 **Commands:**\n• /start - Restart the bot\n• /language - Change language\n• /help - Show this help\n• /cancel - Cancel current action\n\n❓ **FAQs:**\n• How to login? Use /start and choose 'Login'.\n• Forgot password? Contact support via menu.\n• Bot issues? Report in '🐞 Report issue'.\n\n💬 For more help, use 'ℹ️ Support' menu.")
-		return true, s.reply(ctx, sess, helpText)
+		return true, s.replyMessage(ctx, sess, domain.OutgoingMessage{Text: helpText, ParseMode: domain.ParseModeMarkdown})
 	case "/cancel", "cancel", "отмена":
 		if sess.PendingAction != nil {
 			sess.PendingAction = nil

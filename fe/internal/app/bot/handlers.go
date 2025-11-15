@@ -176,7 +176,7 @@ func (s *Service) handleAdmissionsOverview(ctx context.Context, sess *domain.Ses
 		if i >= 5 {
 			break
 		}
-		lines = append(lines, fmt.Sprintf("• %s (%s) — %d years, tuition %.0f₽", p.Title, p.Faculty, p.DurationYears, p.Tuition))
+		lines = append(lines, fmt.Sprintf("• %s (%s) — %d years, tuition %s₽", p.Title, p.Faculty, p.DurationYears, p.Tuition))
 	}
 	lines = append(lines, "", "Upcoming events:")
 	sort.Slice(events, func(i, j int) bool {
