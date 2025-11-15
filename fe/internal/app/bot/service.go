@@ -268,6 +268,9 @@ func (s *Service) handleMainMenu(ctx context.Context, sess *domain.Session, upd 
 			return s.handleEventMode(ctx, sess, strings.TrimPrefix(upd.Payload, "event_mode:"))
 		case strings.HasPrefix(upd.Payload, "cancel_event:"):
 			return s.handleCancelEvent(ctx, sess, strings.TrimPrefix(upd.Payload, "cancel_event:"))
+		case strings.HasPrefix(upd.Payload, "schedule:"):
+			param := strings.TrimPrefix(upd.Payload, "schedule:")
+			return s.handleScheduleFilter(ctx, sess, param)
 		}
 	}
 
@@ -530,6 +533,34 @@ func (s *Service) handleCancelEvent(ctx context.Context, sess *domain.Session, e
 		return s.reply(ctx, sess, "Cancellation failed: "+err.Error())
 	}
 	return s.reply(ctx, sess, "Registration cancelled successfully!")
+}
+
+func (s *Service) handleScheduleFilter(ctx context.Context, sess *domain.Session, param string) error {
+	if sess.Profile == nil || sess.Profile.ID == 0 {
+		return s.reply(ctx, sess, s.t(sess.Language, "Нужна авторизация.", "Please login first."))
+	}
+	items, err := s.backend.GetSchedule(ctx, sess.Profile.ID)
+	if err != nil {
+		return s.reply(ctx, sess, s.t(sess.Language, "Ошибка загрузки расписания.", "Error loading schedule."))
+	}
+	var filtered []domain.ScheduleEntry
+	if param == "all" {
+		filtered = items
+	} else {
+		for _, item := range items {
+			if item.StartTime.Format("2006-01-02") == param {
+				filtered = append(filtered, item)
+			}
+		}
+	}
+	if len(filtered) == 0 {
+		return s.reply(ctx, sess, s.t(sess.Language, "Занятий в этот день нет.", "No sessions on this day."))
+	}
+	lines := []string{s.t(sess.Language, "Расписание:", "Schedule:")}
+	for _, item := range filtered {
+		lines = append(lines, fmt.Sprintf("• %s — %s (%s)", item.StartTime.Format("Mon 02 Jan 15:04"), item.Title, item.Location))
+	}
+	return s.reply(ctx, sess, strings.Join(lines, "\n"))
 }
 
 func (s *Service) t(lang domain.Language, ru, en string) string {

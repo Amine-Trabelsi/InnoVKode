@@ -239,16 +239,36 @@ func (s *Service) handleSchedule(ctx context.Context, sess *domain.Session) (dom
 		return domain.OutgoingMessage{}, err
 	}
 	if len(items) == 0 {
-		return domain.OutgoingMessage{Text: "No sessions scheduled this week."}, nil
+		return domain.OutgoingMessage{Text: s.t(sess.Language, "Расписание занятий отсутствует на этой неделе.", "No sessions scheduled this week.")}, nil
 	}
-	lines := []string{"Schedule:"}
-	for i, item := range items {
-		if i >= 6 {
-			break
+	// Build keyboard with unique days
+	dayMap := make(map[string]string) // date -> display
+	for _, item := range items {
+		date := item.StartTime.Format("2006-01-02")
+		display := item.StartTime.Format("Mon 02 Jan")
+		dayMap[date] = display
+	}
+	kb := &domain.Keyboard{}
+	for date, display := range dayMap {
+		btn := domain.KeyboardButton{
+			Label:   display,
+			Style:   domain.ButtonStylePrimary,
+			Kind:    domain.ButtonKindCallback,
+			Payload: "schedule:" + date,
 		}
-		lines = append(lines, fmt.Sprintf("• %s — %s (%s)", item.StartTime.Format("Mon 02 Jan 15:04"), item.Title, item.Location))
+		kb.Rows = append(kb.Rows, []domain.KeyboardButton{btn})
 	}
-	return domain.OutgoingMessage{Text: strings.Join(lines, "\n")}, nil
+	// Add "All" button
+	kb.Rows = append(kb.Rows, []domain.KeyboardButton{{
+		Label:   s.t(sess.Language, "Все", "All"),
+		Style:   domain.ButtonStyleSecondary,
+		Kind:    domain.ButtonKindCallback,
+		Payload: "schedule:all",
+	}})
+	return domain.OutgoingMessage{
+		Text:     s.t(sess.Language, "Выберите день для просмотра расписания:", "Select a day to view schedule:"),
+		Keyboard: kb,
+	}, nil
 }
 
 func (s *Service) handleExams(ctx context.Context, sess *domain.Session) (domain.OutgoingMessage, error) {
