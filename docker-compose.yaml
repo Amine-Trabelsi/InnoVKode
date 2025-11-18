@@ -43,7 +43,7 @@ services:
       be:
         condition: service_started
     environment:
-      - MAX_BOT_TOKEN=f9LHodD0cOKTw3horWOF1Q-0j299h-2Im_uArBtceLVFl5oS35CFwQkNosNV1CcnbnTCJF_KgUPd8tvUil9t
+      - MAX_BOT_TOKEN=TOKEN_HERE
       - BACKEND_BASE_URL=http://be:8000
       - HTTP_TIMEOUT=10s
       - ENVIRONMENT=docker
